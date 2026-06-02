@@ -1,3 +1,4 @@
+import "dotenv/config"; // load .env for the standalone worker process (Next loads it for the app)
 import { Worker } from "bullmq";
 import { connection, QUEUE_NAMES } from "../src/lib/queue";
 import { prisma } from "../src/lib/prisma";

@@ -1,3 +1,4 @@
+import "dotenv/config"; // load .env for the standalone watcher process
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";

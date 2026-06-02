@@ -56,9 +56,10 @@ export function renderQueue(): Queue<RenderJobData> {
 }
 
 export async function enqueueAnalyze(sourceVideoId: string) {
-  return analyzeQueue().add("analyze", { sourceVideoId }, { jobId: `analyze:${sourceVideoId}` });
+  // NB: BullMQ forbids ':' in custom job ids.
+  return analyzeQueue().add("analyze", { sourceVideoId }, { jobId: `analyze-${sourceVideoId}` });
 }
 
 export async function enqueueRender(clipId: string) {
-  return renderQueue().add("render", { clipId }, { jobId: `render:${clipId}:${Date.now()}` });
+  return renderQueue().add("render", { clipId }, { jobId: `render-${clipId}-${Date.now()}` });
 }
