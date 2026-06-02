@@ -1,0 +1,143 @@
+// CreeperClips data model.
+// See README "Data Model" for the lifecycle of each entity.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Source footage imported from a file (provided by me / my friend).
+// ---------------------------------------------------------------------------
+enum SourceVideoStatus {
+  imported // file landed, analyze job not finished
+  processing // analyze job running
+  analyzed // highlights detected, ready to clip
+  error
+}
+
+model SourceVideo {
+  id           String            @id @default(cuid())
+  filename     String
+  originalPath String // absolute path under MEDIA_DIR/source
+  durationSec  Float?
+  width        Int?
+  height       Int?
+  status       SourceVideoStatus @default(imported)
+  // Credit the person who recorded the footage (my friend), per permission/credit requirement.
+  creatorName  String?
+  errorMessage String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  highlights Highlight[]
+  clips      Clip[]
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// A candidate engaging moment detected by the analyze pipeline.
+// ---------------------------------------------------------------------------
+enum HighlightReason {
+  loudness // RMS / loudness spike (explosions, PvP, reactions)
+  scene_change // visual scene cut
+  speech // notable speech segment
+}
+
+model Highlight {
+  id               String          @id @default(cuid())
+  sourceVideo      SourceVideo     @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  sourceVideoId    String
+  startSec         Float
+  endSec           Float
+  score            Float // ranking score, higher = more engaging
+  reason           HighlightReason
+  transcriptSnippet String?
+  createdAt        DateTime        @default(now())
+
+  clips Clip[]
+
+  @@index([sourceVideoId, score])
+}
+
+// ---------------------------------------------------------------------------
+// A rendered (or to-be-rendered) vertical short clip.
+// ---------------------------------------------------------------------------
+enum ClipStatus {
+  draft
+  rendering
+  ready
+  error
+}
+
+model Clip {
+  id            String      @id @default(cuid())
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  sourceVideoId String
+  highlight     Highlight?  @relation(fields: [highlightId], references: [id], onDelete: SetNull)
+  highlightId   String?
+  title         String?
+  status        ClipStatus  @default(draft)
+  startSec      Float
+  endSec        Float
+  outputPath    String? // MEDIA_DIR/clips/<id>.mp4
+  thumbnailPath String? // MEDIA_DIR/thumbnails/<id>.jpg
+  aspectRatio   String      @default("9:16")
+  durationSec   Float?
+  // Caption preset name (e.g. "karaoke", "block", "clean").
+  captionStyle  String      @default("karaoke")
+  // Branding overlay config (server name/IP/CTA, position, font, colors). See OverlayConfig type.
+  overlayConfig Json?
+  errorMessage  String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  scheduledPosts ScheduledPost[]
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// A planned / exported / posted publication of a clip.
+// ---------------------------------------------------------------------------
+enum Platform {
+  tiktok
+  instagram
+  youtube
+  manual
+}
+
+enum ScheduledPostStatus {
+  planned
+  exported
+  posted
+}
+
+model ScheduledPost {
+  id          String              @id @default(cuid())
+  clip        Clip                @relation(fields: [clipId], references: [id], onDelete: Cascade)
+  clipId      String
+  platform    Platform            @default(manual)
+  scheduledAt DateTime
+  status      ScheduledPostStatus @default(planned)
+  notes       String?
+  exportPath  String? // folder the clip+thumb were exported to
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([scheduledAt])
+}
+
+// ---------------------------------------------------------------------------
+// Simple key/value settings (server name, IP, default presets, MEDIA_DIR, etc.)
+// ---------------------------------------------------------------------------
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

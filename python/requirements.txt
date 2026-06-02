@@ -1,0 +1,9 @@
+# CreeperClips Python processing worker dependencies.
+# Install into a venv:  python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+#
+# System dependency (NOT pip-installable): ffmpeg + ffprobe must be on PATH.
+
+faster-whisper==1.0.3
+librosa==0.10.2.post1
+numpy==1.26.4
+soundfile==0.12.1

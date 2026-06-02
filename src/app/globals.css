@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-[#0d0f12] text-gray-200 antialiased;
+  background-image: radial-gradient(circle at 20% -10%, rgba(59, 177, 67, 0.08), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(59, 177, 67, 0.05), transparent 40%);
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-panel-border bg-panel shadow-panel;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-creeper-500 text-black hover:bg-creeper-400;
+  }
+  .btn-ghost {
+    @apply btn border border-panel-border bg-panel-soft text-gray-200 hover:border-creeper-600 hover:text-white;
+  }
+  .btn-danger {
+    @apply btn border border-red-900/60 bg-red-950/40 text-red-300 hover:bg-red-900/40;
+  }
+  .input {
+    @apply w-full rounded-lg border border-panel-border bg-[#0f1115] px-3 py-2 text-sm text-gray-100 outline-none placeholder:text-gray-600 focus:border-creeper-600;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400;
+  }
+}
+
+/* Thin custom scrollbars to match the dark theme. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-panel-border;
+}

@@ -1,0 +1,41 @@
+# Spins up the two stateful services CreeperClips needs: Postgres + Redis.
+# The Next.js web app and the worker run on the host (npm run dev / npm run worker).
+#
+#   docker compose up -d
+#
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: creeperclips-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: creeper
+      POSTGRES_PASSWORD: creeper
+      POSTGRES_DB: creeperclips
+    ports:
+      - "5432:5432"
+    volumes:
+      - creeper_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creeper -d creeperclips"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: creeperclips-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - creeper_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  creeper_pgdata:
+  creeper_redisdata:
